@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>교대근무 캘린더</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--tx:#1f2430;--sub:#8a91a0;--ln:#e5e8ef;--acc:#3b82f6;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1218;--card:#1a1f2a;--tx:#e8ebf2;--sub:#8b93a5;--ln:#2a3140;--acc:#6aa2ff;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0f1218;--card:#1a1f2a;--tx:#e8ebf2;--sub:#8b93a5;--ln:#2a3140;--acc:#6aa2ff;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.app{max-width:480px;margin:auto;padding:6px 10px 36px}
+header{display:flex;align-items:center;gap:4px;padding:4px 0}
+h1{font-size:26px;margin:0 2px;font-weight:800;letter-spacing:-.5px}
+.ib{font-size:22px;width:36px;height:36px;border-radius:50%}
+.pill{border:1px solid var(--tx);border-radius:14px;padding:3px 10px;font-size:13px;margin-left:4px}
+.sp{flex:1}
+.tabs{display:flex;gap:6px;margin:6px 0 8px}
+.tab{flex:1;padding:8px 0;border-radius:12px;background:var(--card);border:1px solid var(--ln);font-weight:700;font-size:14px;color:var(--sub)}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;overflow:hidden}
+.wd,.cal{display:grid;grid-template-columns:repeat(7,1fr)}
+.wd{text-align:center;font-size:12px;padding:8px 0;border-bottom:1px solid var(--ln)}
+.cal{gap:1px;background:var(--ln)}
+.su{color:#e5484d}.sa{color:#3b82f6}
+.c{background:var(--card);min-height:80px;padding:3px 2px 4px;text-align:center;position:relative;cursor:pointer;min-width:0}
+.c.out{opacity:.38}
+.c.td{background:color-mix(in srgb,var(--acc) 14%,var(--card));box-shadow:inset 0 0 0 2px var(--acc)}
+.td .dn span{background:var(--acc);color:#fff;border-radius:8px;padding:0 5px}
+.dn{display:flex;justify-content:space-between;align-items:center;font-size:11px;height:17px;padding:0 2px}
+.dn em{font-style:normal;font-size:8px;color:#e5484d;overflow:hidden;white-space:nowrap}
+.b,.ch{--c:#8a91a0}
+.b{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:12px;font-weight:700;margin-top:4px}
+.b,.ch.t{background:color-mix(in srgb,var(--c) 24%,var(--card));color:color-mix(in srgb,var(--c) 68%,var(--tx))}
+.b-M{--c:#3b82f6}.b-E{--c:#f97316}.b-N{--c:#8b5cf6}.b-O{--c:#8a91a0}.b-AL{--c:#22c55e}.b-HL{--c:#14b8a6}.b-OT{--c:#ef4444}.b-SW{--c:#ec4899}.b-ED{--c:#eab308}
+.mb{margin:3px 1px 0;background:var(--tx);color:var(--card);font-size:9px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.dot{position:absolute;top:21px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--acc)}.dot.r{background:#e5484d}
+.note{font-size:12px;color:var(--sub);margin:8px 2px 0;min-height:4px}
+h2{font-size:15px;margin:16px 2px 8px}
+.st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.st div{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px 4px;text-align:center}
+.st b{display:block;font-size:22px}.st span{font-size:12px;font-weight:700;color:color-mix(in srgb,var(--c) 70%,var(--tx))}
+.all{background:var(--card)}.wk{border-bottom:6px solid var(--bg)}
+.gr{display:grid;grid-template-columns:36px repeat(7,1fr);align-items:center;text-align:center;padding:2px 0}
+.gr>b{font-size:12px;color:var(--sub)}.gr.me{background:color-mix(in srgb,#facc15 22%,var(--card))}
+.gr.hd{font-size:13px;padding:6px 0 2px}.gr.hd i{font-style:normal;margin:0 6px;border-radius:9px}.gr i.tdc{background:var(--acc);color:#fff}
+.cc{position:relative}.gr .b{width:30px;height:30px;margin:3px 0;font-size:11px}.gr .dot{top:2px;right:6px}.gr .out{opacity:.38}
+.ov{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;justify-content:center;z-index:9}.ov.on{display:flex}
+.sh{background:var(--card);width:100%;max-width:480px;max-height:90%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
+h3{margin:0 0 4px;font-size:18px}small,.sub{font-weight:400;color:var(--sub);font-size:12px}
+label{display:block;margin:14px 0 6px;font-weight:700;font-size:13px}
+.ch{display:inline-block;padding:7px 12px;margin:3px 4px 3px 0;border:1px solid var(--ln);border-radius:18px;background:var(--bg);font-size:13px}
+.ch.on{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc);font-weight:700}
+.pc{margin:2px}
+input,textarea,select{width:100%;box-sizing:border-box;padding:10px;margin:4px 0;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);font:inherit;font-size:16px}
+.row{display:flex;gap:8px;margin-top:12px}
+.btn{flex:1;padding:12px;border-radius:12px;background:var(--bg);font-weight:700;margin-top:4px}.btn.p{background:var(--acc);color:#fff}
+.to{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90%;text-align:center}.to.on{opacity:1}
+</style></head><body><div class="app">
+<header><button class="ib" id="pv">‹</button><h1 id="ti"></h1><button class="ib" id="nx">›</button><button class="pill" id="tdy">오늘</button><span class="sp"></span><button class="ib" id="th">☾</button><button class="ib" id="se">⚙</button></header>
+<nav class="tabs" id="tb"></nav>
+<div class="card"><div class="wd"><i class="su">일</i><i>월</i><i>화</i><i>수</i><i>목</i><i>금</i><i class="sa">토</i></div><div class="cal" id="cal"></div></div>
+<div class="note" id="ng"></div>
+<h2 id="sh2"></h2><section class="st" id="st"></section>
+</div>
+<div class="ov" id="ov"><div class="sh" id="sh"></div></div><div class="to" id="to"></div>
+<script>
+const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),
+esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),
+pd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)},dn=d=>Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5,
+T={M:'조근',E:'중근',N:'야근',O:'휴무',AL:'연차',HL:'반차',OT:'특근',SW:'대근',ED:'교육'},CY=['M','E','N','O'],WD='일월화수목금토',
+HOL={'1-1':'신정','3-1':'삼일절','5-5':'어린이날','6-6':'현충일','8-15':'광복절','10-3':'개천절','10-9':'한글날','12-25':'성탄절'},
+PR=[['4조3교대 16일 · 야근4-휴-중근4-휴-조근4-휴2','NNNNOEEEEOMMMMOO',[8,0,12,4]],['4조3교대 12일 · 조근3-휴-중근3-휴-야근3-휴','MMMOEEEONNNO',[6,0,9,3]],['4조2교대 8일 · 조2-야2-휴4','MMNNOOOO',[4,0,6,2]]],
+K='shiftcal.v1',DF=()=>({theme:'auto',my:1,anchor:'2026-10-06',pat:PR[0][1].split(''),ph:[...PR[0][2]],ov:{}});
+let S=DF();try{const r=JSON.parse(localStorage.getItem(K));if(r&&Array.isArray(r.pat)&&Array.isArray(r.ph))S=Object.assign(DF(),r);else if(r){S.ov=r.ov||{};S.theme=r.theme||'auto'}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const N0=new Date();let V={y:N0.getFullYear(),m:N0.getMonth(),g:S.my};
+function base(d,g){const L=S.pat.length;if(!L)return'O';return S.pat[(((dn(d)-dn(pd(S.anchor))+S.ph[g]-S.ph[S.my])%L)+L)%L]}
+function eff(d,g){const o=g===S.my?S.ov[ymd(d)]:null;return{t:o&&o.t||base(d,g),o}}
+function toast(s){const t=$('#to');t.textContent=s;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2600)}
+const sheet=h=>{$('#sh').onclick=null;$('#sh').innerHTML=h;$('#ov').classList.add('on');$('#cl').onclick=close},close=()=>$('#ov').classList.remove('on');
+function applyTheme(){const r=document.documentElement,d=S.theme==='auto'?matchMedia('(prefers-color-scheme:dark)').matches:S.theme==='dark';r.dataset.theme=d?'dark':'light';$('#th').textContent=d?'☀':'☾'}
+function render(){
+ const{y,m}=V,f=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),w=Math.ceil((f+n)/7),TD=ymd(new Date()),c={M:0,E:0,N:0,O:0,OT:0,AL:0};let h='';
+ for(let i=0;i<w*7;i++){
+  const d=new Date(y,m,1-f+i),k=ymd(d),{t,o}=eff(d,V.g>3?S.my:V.g),out=d.getMonth()!==m,hd=HOL[(d.getMonth()+1)+'-'+d.getDate()],dw=d.getDay(),nt=o&&(o.m||o.tm);
+  if(!out){if(t==='AL')c.AL++;else if(t==='HL')c.AL+=.5;else if(t in c)c[t]++}
+  h+=`<div class="c${out?' out':''}${k===TD?' td':''}" data-k="${k}"><div class="dn ${dw==0||hd?'su':dw==6?'sa':''}"><span>${d.getDate()}</span><em>${hd||''}</em></div><span class="b b-${t}">${T[t]}</span>${nt?`<div class="mb">${esc(o.m||o.tm)}</div>`:''}${nt||t==='OT'?`<i class="dot${t==='OT'?' r':''}"></i>`:''}</div>`}
+ $('#cal').className=V.g>3?'all':'cal';$('.wd').style.display=V.g>3?'none':'';$('#cal').innerHTML=V.g>3?allH(y,m,f,w):h;$('#ti').textContent=y+'. '+(m+1);
+ $('#tb').innerHTML=[0,1,2,3].map(g=>`<button class="tab${g===V.g?' on':''}" data-g="${g}">${'ABCD'[g]}조${g===S.my?' ★':''}</button>`).join('')+`<button class="tab${V.g>3?' on':''}" data-g="4">전체</button>`;
+ $('#ng').textContent=V.g===S.my?'날짜를 누르면 연차·특근·메모를 입력할 수 있어요':V.g>3?'노란 줄이 내 조예요 · 내 조 줄을 눌러 수정할 수 있어요':'다른 조 보기 중 · 내 조(★) 탭에서 날짜를 눌러 수정하세요';
+ $('#sh2').textContent=(m+1)+'월 근무 요약 · '+'ABCD'[V.g>3?S.my:V.g]+'조';
+ $('#st').innerHTML=[['M','조근',c.M],['E','중근',c.E],['N','야근',c.N],['O','휴무',c.O],['OT','특근',c.OT],['AL','연차(일)',c.AL]].map(([t,l,v])=>`<div class="b-${t}"><b>${v}</b><span>${l}</span></div>`).join('')}
+function allH(y,m,f,w){const TD=ymd(new Date());let h='';
+ for(let r=0;r<w;r++){const ds=[0,1,2,3,4,5,6].map(j=>new Date(y,m,1-f+r*7+j));
+  let x=`<div class="gr hd"><b></b>${ds.map(d=>{const dw=d.getDay(),hl=HOL[(d.getMonth()+1)+'-'+d.getDate()];return `<i class="${dw==0||hl?'su':dw==6?'sa':''}${ymd(d)===TD?' tdc':''}${d.getMonth()!==m?' out':''}">${d.getDate()}</i>`}).join('')}</div>`;
+  for(let g=0;g<4;g++)x+=`<div class="gr${g===S.my?' me':''}"><b>${'ABCD'[g]}조</b>${ds.map(d=>{const{t,o}=eff(d,g);return `<div class="cc${d.getMonth()!==m?' out':''}"${g===S.my?` data-k="${ymd(d)}"`:''}><span class="b b-${t}">${T[t]}</span>${o&&(o.m||o.tm)?'<i class="dot"></i>':''}</div>`}).join('')}</div>`;
+  h+=`<div class="wk">${x}</div>`}
+ return h}
+function openDay(k){
+ if(V.g<4&&V.g!==S.my)return toast('내 조(★) 탭에서 수정할 수 있어요');
+ const d=pd(k),o=S.ov[k]||{};let sel=o.t||'';
+ sheet(`<h3>${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]}) <small>기본 ${T[base(d,S.my)]}</small></h3><div class="sub">조별 근무 · ${[0,1,2,3].map(g=>'ABCD'[g]+' '+T[base(d,g)]).join(' / ')}</div>
+ <label>근무 상태</label><div id="tc">${['','M','E','N','O','AL','HL','OT','SW','ED'].map(t=>`<button class="ch t b-${t||'x'}${t===sel?' on':''}" data-t="${t}">${t?T[t]:'기본(패턴)'}</button>`).join('')}</div>
+ <label>시간 · 메모</label><input id="tm" placeholder="시간 (예: 14:00~22:00)" value="${esc(o.tm||'')}"><textarea id="mm" rows="3" placeholder="메모">${esc(o.m||'')}</textarea>
+ <div class="row"><button class="btn" id="rs">초기화</button><button class="btn" id="cl">닫기</button><button class="btn p" id="sv">저장</button></div>`);
+ $('#tc').onclick=e=>{const b=e.target.closest('[data-t]');if(b){sel=b.dataset.t;[...$('#tc').children].forEach(x=>x.classList.toggle('on',x===b))}};
+ $('#sv').onclick=()=>{const v={t:sel,tm:$('#tm').value.trim(),m:$('#mm').value.trim()};if(v.t||v.tm||v.m)S.ov[k]=v;else delete S.ov[k];save();close();render()};
+ $('#rs').onclick=()=>{delete S.ov[k];save();close();render()}}
+function openSet(){
+ const D={my:S.my,pat:[...S.pat],ph:[...S.ph]};
+ sheet(`<h3>설정</h3><label>내 소속 조</label><div id="sg"></div>
+ <label>패턴 시작 기준일 <small>내 조가 패턴 1일차인 날</small></label><input type="date" id="an" value="${S.anchor}">
+ <label>반복 패턴 <small id="pl"></small></label><select id="ps"><option value="">프리셋 불러오기…</option>${PR.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('')}</select>
+ <div id="pc"></div><div>${CY.map(t=>`<button class="ch t b-${t}" data-a="${t}">+${T[t]}</button>`).join('')}<button class="ch" data-a="-">⌫ 삭제</button></div>
+ <label>조별 시차(일) <small>내 조보다 며칠 앞선 패턴인지</small></label><div class="row" id="pp" style="margin:0"></div>
+ <label>백업 / 복원 <small>JSON</small></label><div class="row" style="margin:0"><button class="btn" id="ex">내보내기</button><button class="btn" id="im">불러오기</button></div>
+ <input type="file" id="fi" accept=".json,application/json" hidden><textarea id="ta" rows="4" hidden placeholder="백업 JSON 붙여넣기"></textarea><button class="btn" id="tr" hidden>텍스트로 복원</button>
+ <div class="row"><button class="btn" id="cl">닫기</button><button class="btn p" id="sv">저장</button></div>`);
+ const draw=()=>{$('#sg').innerHTML=[0,1,2,3].map(g=>`<button class="ch${g===D.my?' on':''}" data-m="${g}">${'ABCD'[g]}조</button>`).join('');
+  $('#pc').innerHTML=D.pat.map((t,i)=>`<button class="b pc b-${t}" data-i="${i}">${T[t]}</button>`).join('');$('#pl').textContent=D.pat.length+'일 주기 · 눌러서 변경';const L=D.pat.length||1;
+  $('#pp').innerHTML=[0,1,2,3].map(g=>`<div style="flex:1;text-align:center;font-size:12px">${'ABCD'[g]}조<input type="number" min="0" data-p="${g}" value="${((D.ph[g]-D.ph[D.my])%L+L)%L}"${g===D.my?' disabled':''}></div>`).join('')};
+ draw();
+ $('#sh').oninput=e=>{const g=e.target.dataset.p;if(g!==undefined)D.ph[g]=D.ph[D.my]+(+e.target.value||0)};
+ $('#sh').onclick=e=>{let b;if(b=e.target.closest('[data-a]')){b.dataset.a==='-'?D.pat.pop():D.pat.push(b.dataset.a);draw()}
+  else if(b=e.target.closest('[data-m]')){D.my=+b.dataset.m;draw()}
+  else if(b=e.target.closest('[data-i]')){const i=+b.dataset.i;D.pat[i]=CY[(CY.indexOf(D.pat[i])+1)%4];draw()}};
+ $('#ps').onchange=e=>{if(e.target.value!==''){const p=PR[e.target.value];D.pat=p[1].split('');D.ph=[...p[2]];draw()}};
+ $('#sv').onclick=()=>{const a=$('#an').value;if(!a||!D.pat.length)return toast('기준일과 패턴을 입력해 주세요');S.my=D.my;S.anchor=a;S.pat=D.pat;S.ph=D.ph;V.g=S.my;save();close();render();toast('저장했어요')};
+ $('#ex').onclick=()=>{const j=JSON.stringify({app:'shiftcal',v:1,data:S}),t=$('#ta');t.hidden=false;t.value=j;t.select();
+  try{navigator.clipboard.writeText(j)}catch(e){}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));a.download='shift-backup-'+ymd(new Date())+'.json';document.body.appendChild(a);a.click();a.remove()}catch(e){}
+  toast('백업 저장/복사를 시도했어요. 안 되면 아래 텍스트를 복사해 보관하세요')};
+ $('#im').onclick=()=>{$('#ta').hidden=false;$('#tr').hidden=false;$('#fi').click()};
+ $('#fi').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>imp(r.result);r.readAsText(f)};
+ $('#tr').onclick=()=>imp($('#ta').value)}
+function imp(t){try{const j=JSON.parse(t),d=j.data||j;if(!Array.isArray(d.pat)||!d.pat.length||!d.pat.every(x=>CY.includes(x))||typeof d.ov!=='object')throw 0;S=Object.assign(DF(),d);save();close();V.g=S.my;applyTheme();render();toast('복원했어요')}catch(e){toast('올바른 백업 데이터가 아니에요')}}
+const mv=n=>{const d=new Date(V.y,V.m+n,1);V.y=d.getFullYear();V.m=d.getMonth();render()};
+$('#pv').onclick=()=>mv(-1);$('#nx').onclick=()=>mv(1);$('#tdy').onclick=()=>{const n=new Date();V.y=n.getFullYear();V.m=n.getMonth();render()};
+$('#th').onclick=()=>{S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';save();applyTheme()};
+$('#se').onclick=openSet;$('#ov').onclick=e=>{if(e.target.id==='ov')close()};
+$('#tb').onclick=e=>{const b=e.target.closest('[data-g]');if(b){V.g=+b.dataset.g;render()}};
+$('#cal').onclick=e=>{const c=e.target.closest('[data-k]');if(c)openDay(c.dataset.k)};
+let sx=0;$('#cal').addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+$('#cal').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>70)mv(dx<0?1:-1)});
+applyTheme();render();
+</script></body></html>
